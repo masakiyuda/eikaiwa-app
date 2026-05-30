@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="英会話ノート" />
+  <title>英会話ノート</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff;
+      --bg2: #f5f5f7;
+      --bg3: #ebebed;
+      --text: #1a1a1a;
+      --text2: #6e6e73;
+      --text3: #aeaeb2;
+      --border: rgba(0,0,0,0.10);
+      --border2: rgba(0,0,0,0.18);
+      --accent: #007AFF;
+      --accent-bg: #e8f1ff;
+      --accent-text: #0040a0;
+      --success: #34c759;
+      --success-bg: #e8fbed;
+      --success-text: #1a6b32;
+      --danger: #ff3b30;
+      --danger-bg: #ffeceb;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1e;
+        --bg2: #2c2c2e;
+        --bg3: #3a3a3c;
+        --text: #f2f2f7;
+        --text2: #aeaeb2;
+        --text3: #636366;
+        --border: rgba(255,255,255,0.10);
+        --border2: rgba(255,255,255,0.20);
+        --accent: #0A84FF;
+        --accent-bg: #0a2240;
+        --accent-text: #7ab8ff;
+        --success-bg: #0d2e17;
+        --success-text: #5de07a;
+        --danger-bg: #2d0f0d;
+      }
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+      background: var(--bg2);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .header {
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--border);
+      padding: 16px 20px;
+      padding-top: calc(16px + env(safe-area-inset-top));
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header h1 { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; }
+    .header p { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .tabs {
+      display: flex;
+      background: var(--bg);
+      border-bottom: 0.5px solid var(--border);
+      padding: 0 16px;
+    }
+    .tab {
+      flex: 1;
+      padding: 12px 8px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .section { display: none; padding: 16px; }
+    .section.active { display: block; }
+    .card {
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 0.5px solid var(--border);
+    }
+    label { font-size: 12px; font-weight: 500; color: var(--text2); display: block; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .lang-toggle { display: flex; gap: 8px; margin-bottom: 14px; }
+    .lang-btn {
+      flex: 1; padding: 10px; border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2);
+      background: transparent; color: var(--text2);
+      font-size: 13px; font-weight: 500; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .lang-btn.active { background: var(--accent-bg); color: var(--accent-text); border-color: var(--accent); }
+    textarea {
+      width: 100%; border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2);
+      padding: 12px; font-size: 16px;
+      font-family: inherit; resize: none;
+      background: var(--bg); color: var(--text);
+      min-height: 90px; margin-bottom: 12px;
+      -webkit-appearance: none;
+    }
+    textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    .btn-primary {
+      width: 100%; padding: 14px;
+      border-radius: var(--radius-sm);
+      border: none; background: var(--accent);
+      color: #fff; font-size: 16px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary:active { opacity: 0.8; }
+    .btn-primary:disabled { opacity: 0.4; }
+    .loading { text-align: center; padding: 24px; color: var(--text2); font-size: 14px; }
+    .spinner {
+      display: inline-block; width: 20px; height: 20px;
+      border: 2px solid var(--border2); border-top-color: var(--accent);
+      border-radius: 50%; animation: spin 0.7s linear infinite;
+      vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .result-en { font-size: 20px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.4; }
+    .result-ja { font-size: 14px; color: var(--text2); margin-bottom: 16px; }
+    .section-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+    .ex-item { background: var(--bg2); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 6px; }
+    .ex-en { font-size: 14px; color: var(--text); margin-bottom: 2px; }
+    .ex-ja { font-size: 12px; color: var(--text2); }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+    .chip { font-size: 12px; padding: 5px 12px; background: var(--bg2); border: 0.5px solid var(--border); border-radius: 20px; color: var(--text2); }
+    .save-btn {
+      width: 100%; padding: 13px;
+      border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2);
+      background: transparent; color: var(--accent);
+      font-size: 15px; font-weight: 600;
+      cursor: pointer; transition: all 0.15s;
+    }
+    .save-btn:active { background: var(--accent-bg); }
+    .saved-msg { text-align: center; padding: 12px; color: var(--success-text); background: var(--success-bg); border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stat { background: var(--bg); border-radius: var(--radius-sm); padding: 14px; text-align: center; border: 0.5px solid var(--border); }
+    .stat-num { font-size: 28px; font-weight: 700; color: var(--text); }
+    .stat-lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+    .search {
+      width: 100%; padding: 12px 16px; border-radius: var(--radius-sm);
+      border: 0.5px solid var(--border2); background: var(--bg);
+      color: var(--text); font-size: 15px; font-family: inherit;
+      margin-bottom: 14px; -webkit-appearance: none;
+    }
+    .search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+    .s-item { background: var(--bg); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; border: 0.5px solid var(--border); }
+    .s-en { font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.4; }
+    .s-ja { font-size: 13px; color: var(--text2); margin-top: 4px; }
+    .s-footer { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+    .s-tag { font-size: 11px; padding: 3px 10px; background: var(--accent-bg); color: var(--accent-text); border-radius: 20px; font-weight: 500; }
+    .s-date { font-size: 11px; color: var(--text3); margin-left: auto; }
+    .del-btn { font-size: 12px; color: var(--danger); border: none; background: transparent; padding: 4px 8px; cursor: pointer; border-radius: var(--radius-sm); }
+    .empty { text-align: center; padding: 48px 16px; color: var(--text2); font-size: 14px; }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .error { background: var(--danger-bg); color: var(--danger); border-radius: var(--radius-sm); padding: 12px; font-size: 13px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📖 英会話ノート</h1>
+  <p>オンライン英会話で学んだフレーズを記録・学習</p>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('add')">＋ センテンスを追加</button>
+  <button class="tab" onclick="switchTab('list')">📋 マイリスト</button>
+</div>
+
+<div id="tab-add" class="section active">
+  <div class="card">
+    <label>入力言語を選択</label>
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btn-ja" onclick="setLang('ja')">🇯🇵 日本語 → English</button>
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">🇬🇧 English → 日本語</button>
+    </div>
+    <textarea id="input-text" placeholder="日本語でセンテンスを入力..." rows="3"></textarea>
+    <button class="btn-primary" id="gen-btn" onclick="generate()">AI解析する</button>
+  </div>
+
+  <div id="error-area"></div>
+  <div id="result-area"></div>
+</div>
+
+<div id="tab-list" class="section">
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="total-cnt">0</div><div class="stat-lbl">保存済み合計</div></div>
+    <div class="stat"><div class="stat-num" id="today-cnt">0</div><div class="stat-lbl">今日追加</div></div>
+  </div>
+  <input class="search" type="text" placeholder="🔍 英語・日本語・タグで検索..." oninput="renderList(this.value)" />
+  <div id="sentence-list"></div>
+</div>
+
+<script>
+  let sentences = [], lang = 'ja', currentResult = null;
+
+  try { const s = localStorage.getItem('eikaiwa_v1'); if (s) sentences = JSON.parse(s); } catch(e) {}
+
+  function persist() { try { localStorage.setItem('eikaiwa_v1', JSON.stringify(sentences)); } catch(e) {} }
+
+  function switchTab(t) {
+    document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', ['add','list'][i] === t));
+    document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + t).classList.add('active');
+    if (t === 'list') renderList('');
+  }
+
+  function setLang(l) {
+    lang = l;
+    document.getElementById('btn-ja').classList.toggle('active', l === 'ja');
+    document.getElementById('btn-en').classList.toggle('active', l === 'en');
+    document.getElementById('input-text').placeholder = l === 'ja'
+      ? '日本語でセンテンスを入力...'
+      : 'Enter an English sentence...';
+    document.getElementById('result-area').innerHTML = '';
+    currentResult = null;
+  }
+
+  async function generate() {
+    const text = document.getElementById('input-text').value.trim();
+    if (!text) return;
+    const btn = document.getElementById('gen-btn');
+    const errArea = document.getElementById('error-area');
+    const resArea = document.getElementById('result-area');
+    btn.disabled = true;
+    errArea.innerHTML = '';
+    resArea.innerHTML = '<div class="loading"><span class="spinner"></span>AIが解析中...</div>';
+    currentResult = null;
+
+    const prompt = lang === 'ja'
+      ? `あなたは英語学習アシスタントです。以下の日本語を英語センテンスに翻訳し、学習用データをJSONのみで返してください（説明・マークダウン不要）。\n日本語:「${text}」\n{"en":"英語センテンス","ja":"自然な日本語","tag":"カテゴリ1語(例:日常・ビジネス・感情・旅行・意見)","examples":[{"en":"関連例文1","ja":"訳"},{"en":"関連例文2","ja":"訳"}],"similar":["類似表現1","類似表現2","類似表現3"]}`
+      : `You are an English learning assistant for Japanese learners. Analyze the sentence and return ONLY JSON (no markdown).\nEnglish: "${text}"\n{"en":"corrected English","ja":"日本語訳","tag":"カテゴリ1語(日常・ビジネス・感情・旅行・意見など)","examples":[{"en":"related example 1","ja":"訳"},{"en":"related example 2","ja":"訳"}],"similar":["similar expression 1","similar expression 2","similar expression 3"]}`;
+
+    try {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+      });
+      const data = await res.json();
+      const raw = data.content?.find(c => c.type === 'text')?.text || '';
+      const parsed = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      currentResult = parsed;
+      renderResult(parsed);
+    } catch(e) {
+      resArea.innerHTML = '';
+      errArea.innerHTML = '<div class="error">解析に失敗しました。もう一度お試しください。</div>';
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function renderResult(d) {
+    document.getElementById('result-area').innerHTML = `
+      <div class="card">
+        <div class="result-en">${esc(d.en)}</div>
+        <div class="result-ja">${esc(d.ja)}</div>
+        <div class="section-label">関連例文</div>
+        ${d.examples.map(ex => `<div class="ex-item"><div class="ex-en">${esc(ex.en)}</div><div class="ex-ja">${esc(ex.ja)}</div></div>`).join('')}
+        <div class="section-label" style="margin-top:14px;">類似表現</div>
+        <div class="chips">${d.similar.map(s => `<span class="chip">${esc(s)}</span>`).join('')}</div>
+        <div id="save-area">
+          <button class="save-btn" onclick="saveSentence()">リストに保存する</button>
+        </div>
+      </div>`;
+  }
+
+  function saveSentence() {
+    if (!currentResult) return;
+    sentences.unshift({ id: Date.now(), en: currentResult.en, ja: currentResult.ja, tag: currentResult.tag || '未分類', date: new Date().toLocaleDateString('ja-JP') });
+    persist();
+    document.getElementById('save-area').innerHTML = '<div class="saved-msg">✓ リストに保存しました！</div>';
+  }
+
+  function renderList(q) {
+    const today = new Date().toLocaleDateString('ja-JP');
+    document.getElementById('total-cnt').textContent = sentences.length;
+    document.getElementById('today-cnt').textContent = sentences.filter(s => s.date === today).length;
+    const filtered = sentences.filter(s => !q || s.en.toLowerCase().includes(q.toLowerCase()) || s.ja.includes(q) || (s.tag||'').includes(q));
+    const el = document.getElementById('sentence-list');
+    if (filtered.length === 0) {
+      el.innerHTML = sentences.length === 0
+        ? '<div class="empty"><div class="empty-icon">📝</div>まだセンテンスがありません。<br>「センテンスを追加」から始めましょう！</div>'
+        : '<div class="empty">該当するセンテンスが見つかりません</div>';
+      return;
+    }
+    el.innerHTML = filtered.map(s => `
+      <div class="s-item">
+        <div class="s-en">${esc(s.en)}</div>
+        <div class="s-ja">${esc(s.ja)}</div>
+        <div class="s-footer">
+          <span class="s-tag">${esc(s.tag)}</span>
+          <span class="s-date">${esc(s.date)}</span>
+          <button class="del-btn" onclick="del(${s.id})">削除</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function del(id) {
+    if (!confirm('このセンテンスを削除しますか？')) return;
+    sentences = sentences.filter(s => s.id !== id);
+    persist();
+    renderList(document.querySelector('.search')?.value || '');
+  }
+</script>
+</body>
+</html>
